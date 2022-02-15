@@ -1,0 +1,148 @@
+import PyPDF2
+import textract
+import re
+import string
+import pandas as pd
+import matplotlib.pyplot as plt
+%matplotlib inline
+
+#Open pdf file
+pdfFileObj = open('./Muhammad Termidzi Bin Mahmod_Data Analyst.pdf','rb')
+
+# Read file
+pdfReader = PyPDF2.PdfFileReader(pdfFileObj)
+
+# Get total number of pages
+num_pages = pdfReader.numPages
+
+# Initialize a count for the number of pages
+count = 0
+
+# Initialize a text empty string variable
+text = ""
+
+# Extract text from every page on the file
+while count < num_pages:
+    pageObj = pdfReader.getPage(count)
+    count +=1
+    text += pageObj.extractText()
+    
+    # Convert all strings to lowercase
+text = text.lower()
+
+# Remove numbers
+text = re.sub(r'\d+','',text)
+
+# Remove punctuation
+text = text.translate(str.maketrans('','',string.punctuation))
+
+# Create dictionary with industrial and system engineering key terms by area
+terms = {'Data Analyst':['data analyst', 'analyze', 'extract', 'interpret', 'identify', 'pattern', 'data', 'tables', 'reports',
+                         'managing', 'leading', 'master data', 'creating', 'updating', 'deleting', 'generate', 'reports', 
+                         'user requirements','business', 'stakeholders', 'single system', 'multiple system', 'report results',
+                         'perform analysis', 'support','initiate', 'data integrity', 'data quality','data normalization', 
+                         'assess', 'quality of data', 'filter', 'clean data','review', 'computer reports', 'printouts',
+                         'performance indicators', 'kpi', 'locate', 'correct', 'risk assessment', 'deliver',
+                         'mitigate', 'resolve', 'perform initial analysis', 'work', 'team', 'project manager', 'delivery team', 
+                         'data management','solution', 'experience', 'database', 'query', 'sql', 'advanced excel', 
+                         'skills', 'pivot table', 'graphing', 'coding', 'functions'],      
+        'Data Engineer':['data engineer', 'etl', 'data', 'integration', 'cloud', 'aws', 'azure', 'talend', 'informatica', 
+                         'architecture', 'standardize','standard', 'data layers', 'extract', 'transform', 'load', 'develop', 'construct', 
+                         'test', 'maintain', 'data set', 'data model', 'business requirements', 'support', 'solve', 'integration issues', 
+                         'application level', 'infra', 'network level', 'identify','bottlenecks', 'data pipelines', 'propose', 
+                         'lead', 'efforts', 'optimize', 'automate', 'data pipeline works', 'ensure', 'lake architecture', 
+                         'approved architecture', 'experience', 'data transformation', 'talend', 'talend data cataloq','talend data quality',
+                         'talend dq', 'database query', 'SQL', 'cloud tool', 'azure', 'microsoft', 'amazon', 's3', 'programming language',
+                         'data crawling', 'processing tool', 'data reliability', 'data quality', 'efficiency'],
+        'Data Modeler':['data modeler', 'data model', 'model', 'modeling', 'analyze', 'understanding', 'collect', 'update', 'store', 
+                        'exchange data', 'cloud', 'aws', 'azure', 'define', 'employ data modeling', 'design standards', 'modeling tools',
+                        'best practices', 'development methodologies', 'review', 'maintain', 'design data models', 'perform', 
+                        'data analysis', 'activities', 'capturing data requirements', 'represent', 'data models visualization',
+                        'manage', 'data life cycle', 'requirement', 'stakeholder', 'business', 'design to implementation', 
+                        'maintenance', 'create', 'optimal physical', 'datasets', 'identify area', 'improve business activities',
+                        'assist', 'etl developers', 'business data rules', 'data solutions', 'erwin data modeler', 'data warehouse', 
+                        'schema', 'star schema'],
+        'Data Quality Engineer':['data quality', 'quality', 'engineer', 'understanding requirements', 'test cases', 'quality metrics', 
+                                 'dashboard', 'talend data quality', 'data quality tools', 'informatica', 'power bi', 'data validity',
+                                 'accuracy', 'integrity', 'reliability', 'availability', 'quality dimensions', 'data platform', 
+                                 'perform testing', 'correcting', 'mitigation', 'risk assessment', 'resolve problems', 'communicate', 
+                                 'perform', 'present', 'stakeholder', 'analyze', 'troubleshoot', 'data quality results', 'collaborate', 
+                                 'development process', 'team', 'root cause analysis', 'resolutions', 'build automated', 'test frameworks',
+                                 'tools', 'automate data platform', 'services', 'applications', 'database design'],
+        'Data Architect':['data architect', 'design', 'implement', 'maintain', 'large-scale database', 'technical data architect', 
+                          'develop', 'manage', 'strategic enterprise', 'data management', 'vision', 'roadmap', 'enterprise system',
+                          'applications data', 'subject matter expert', 'investigating', 'implementing', 'latest solution', 
+                          'efficient', 'effective', 'data solutions practices', 'establish', 'enforce policies', 'align company resources',
+                          'responsible', 'data collection', 'transformation', 'consumption', 'creation', 'ownership', 'modification', 
+                          'data governance', 'processes', 'procedures', 'highlLevel design', 'hld', 'direct', 'approve', 
+                          'design of data storage system', 'enforce', 'data security', 'sensitive data', 'assist', 'internal teams',
+                          'identification', 'evaluation', 'mitigation', 'risks', 'present', 'demonstrate', 'data storage', 'business intelligence',
+                          'best practices', 'key stakeholders', 'strong proficiency', 'database security', 'data recovery', 'performance',
+                          'monitoring', 'tuning', 'database', 'data warehousing', 'SQL', 'NoSQL', 'RDBMS', 'MS SQL', 'AWS DynamoDB', 'HIVE', 
+                          'cloud', 'full stack resources', 'Azure', 'AWS', 'data lake architecture', 'technology', 'data visualization',
+                          'informatica', 'datscale', 'open subsurface data universe', 'osdu', 'architect architecture', 
+                          'translate business concepts', 'data storage solutions', 'communicate complex technical concepts',
+                          'effective manner', 'strong interpersonal skills', 'strong cross-organizational partnerships',
+                          'manage communication', 'expectations', 'stakeholders', 'training', 'mentoring', 'team members', 'leading']}
+        
+        # Initializie score counters for each area
+analyst = 0
+engineer = 0
+modeler= 0
+quality = 0
+architect = 0
+
+
+# Create an empty list where the scores will be stored
+scores = []
+
+# Obtain the scores for each area
+for area in terms.keys():
+        
+    if area == 'Data Analyst':
+        for word in terms[area]:
+            if word in text:
+                analyst +=1
+        scores.append(analyst)
+        
+    elif area == 'Data Engineer':
+        for word in terms[area]:
+            if word in text:
+                engineer +=1
+        scores.append(engineer)
+        
+    elif area == 'Data Modeler':
+        for word in terms[area]:
+            if word in text:
+                modeler +=1
+        scores.append(modeler)
+        
+    elif area == 'Data Quality Engineer':
+        for word in terms[area]:
+            if word in text:
+                quality +=1
+        scores.append(quality)
+        
+    else:
+        for word in terms[area]:
+            if word in text:
+                architect +=1
+        scores.append(architect)
+# Create a data frame with the scores summary
+summary = pd.DataFrame(scores,index=terms.keys(),columns=['score']).sort_values(by='score',ascending=False)
+summary
+score
+Data Analyst	21
+Data Engineer	13
+Data Architect	13
+Data Modeler	12
+Data Quality Engineer	11
+# Create pie chart visualization
+pie = plt.figure(figsize=(10,10))
+plt.pie(summary['score'], labels=summary.index, explode = (0.1,0,0,0,0), autopct='%1.0f%%',shadow=True,startangle=90)
+plt.title('Industrial Engineering Candidate - Resume Decomposition by Areas')
+plt.axis('equal')
+plt.show()
+
+# Save pie chart as a .png file
+pie.savefig('resume_screening_results.png')
