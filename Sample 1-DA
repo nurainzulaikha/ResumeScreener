@@ -131,12 +131,7 @@ for area in terms.keys():
 # Create a data frame with the scores summary
 summary = pd.DataFrame(scores,index=terms.keys(),columns=['score']).sort_values(by='score',ascending=False)
 summary
-score
-Data Analyst	21
-Data Engineer	13
-Data Architect	13
-Data Modeler	12
-Data Quality Engineer	11
+
 # Create pie chart visualization
 pie = plt.figure(figsize=(10,10))
 plt.pie(summary['score'], labels=summary.index, explode = (0.1,0,0,0,0), autopct='%1.0f%%',shadow=True,startangle=90)
